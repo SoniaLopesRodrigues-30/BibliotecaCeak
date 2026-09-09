@@ -1,12 +1,13 @@
 // js/acervo.js
 let tempoEsperaCodigo;
 
+// ===================================================
 // 1. LISTAGEM DOS LIVROS NA TELA
+// ===================================================
 window.listarLivros = function(termoPesquisa = "") {
     const tabelaCorpo = document.getElementById("tabelaLivros");
     if (!tabelaCorpo) return;
 
-    // Busca os dados diretamente da memória compartilhada
     let livros = window.bibliotecaDados?.livros || [];
 
     // Ordenação alfabética e numérica DECRESCENTE pelo código
@@ -16,15 +17,14 @@ window.listarLivros = function(termoPesquisa = "") {
     let contadorResultados = 0;
 
     livros.forEach(l => {
-        // Blindagem contra variação de nomes de colunas do Excel/CSV
         const codigo = l.codigo || l.CODIGO || l.Código || l.CÓDIGO || '-';
         const titulo = l.titulo || l.TITULO || l.Título || l.TÍTULO || l.tituloLivro || 'Sem título';
         const autor = l.autor || l.AUTOR || l.Autor || 'Não informado';
         const genero = l.genero || l.GENERO || l.Gênero || l.GÊNERO || l.categoria || '-';
+        const idAtual = l.id || l.ID || "";
 
         const termo = termoPesquisa.toLowerCase().trim();
         
-        // Validação de filtros por múltiplos campos
         if (termo && 
             !String(titulo).toLowerCase().includes(termo) && 
             !String(codigo).toLowerCase().includes(termo) &&
@@ -41,14 +41,14 @@ window.listarLivros = function(termoPesquisa = "") {
             <td>${autor}</td>
             <td>${genero}</td>
             <td class="text-right">
-                <button type="button" class="btn-salvar" style="padding: 4px 8px; font-size: 0.85rem; background-color: #2563eb;" onclick="window.prepararEdicaoLivro(${l.id || l.ID})">✏️</button>
-                <button type="button" class="btn-cancelar" style="padding: 4px 8px; font-size: 0.85rem; display: inline-block;" onclick="window.deletarLivro(${l.id || l.ID})">🗑️</button>
+                <!-- CORREÇÃO: Passa o ID como string escapada para evitar quebras -->
+                <button type="button" class="btn-salvar" style="padding: 4px 8px; font-size: 0.85rem; background-color: #2563eb;" onclick="window.prepararEdicaoLivro('${idAtual}')">✏️</button>
+                <button type="button" class="btn-cancelar" style="padding: 4px 8px; font-size: 0.85rem; display: inline-block;" onclick="window.deletarLivro('${idAtual}')">🗑️</button>
             </td>
         `;
         tabelaCorpo.appendChild(tr);
     });
 
-    // Atualiza o contador do acervo
     const totalResultados = document.getElementById("totalLivros");
     if (totalResultados) totalResultados.textContent = contadorResultados;
 
@@ -57,7 +57,9 @@ window.listarLivros = function(termoPesquisa = "") {
     }
 };
 
+// ===================================================
 // 2. VERIFICAÇÃO AUTOMÁTICA DE DUPLICIDADE POR CÓDIGO
+// ===================================================
 window.verificarDuplicidadeLivro = function() {
     const livroId = document.getElementById('livroId');
     const codigoInput = document.getElementById('codigo');
@@ -74,7 +76,7 @@ window.verificarDuplicidadeLivro = function() {
         const l = livros.find(livro => String(livro.codigo || '').toLowerCase() === codigoDigitado);
         
         if (l) {
-            document.getElementById('livroId').value = l.id || l.ID; 
+            document.getElementById('livroId').value = l.id || l.ID || ""; 
             document.getElementById('titulo').value = l.titulo || l.TITULO || ''; 
             document.getElementById('autor').value = l.autor || l.AUTOR || ''; 
             document.getElementById('genero').value = l.genero || l.GENERO || '';
@@ -86,7 +88,9 @@ window.verificarDuplicidadeLivro = function() {
     }, 150);
 };
 
-// 3. RESETAR E LIMPAR CAMPOS DO FORMULÁRIO (RECOLOCADA)
+// ===================================================
+// 3. RESETAR E LIMPAR CAMPOS DO FORMULÁRIO
+// ===================================================
 window.resetarFormLivro = function(darFoco = true) {
     const form = document.getElementById('livroForm');
     const livroId = document.getElementById('livroId');
@@ -107,13 +111,16 @@ window.resetarFormLivro = function(darFoco = true) {
     }
 };
 
+// ===================================================
 // 4. PREPARAR CARREGAMENTO PARA EDIÇÃO NO FORMULÁRIO
+// ===================================================
 window.prepararEdicaoLivro = function(id) {
     let livros = window.bibliotecaDados?.livros || [];
-    const l = livros.find(livro => (livro.id || livro.ID) === parseInt(id, 10));
+    // CORREÇÃO: Comparação segura convertendo ambos os lados para String
+    const l = livros.find(livro => String(livro.id || livro.ID || "").trim() === String(id).trim());
     if (!l) return;
     
-    document.getElementById('livroId').value = l.id || l.ID; 
+    document.getElementById('livroId').value = l.id || l.ID || ""; 
     document.getElementById('codigo').value = l.codigo || l.CODIGO || ''; 
     document.getElementById('titulo').value = l.titulo || l.TITULO || ''; 
     document.getElementById('autor').value = l.autor || l.AUTOR || ''; 
@@ -127,17 +134,24 @@ window.prepararEdicaoLivro = function(id) {
     if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
-// 5. EXCLUSÃO DE LIVRO DA MEMÓRIA ATUAL (RECOLOCADA)
+// ===================================================
+// 5. EXCLUSÃO DE LIVRO DA MEMÓRIA ATUAL
+// ===================================================
 window.deletarLivro = function(id) {
     if (confirm("Excluir este livro permanentemente da memória atual?")) {
         if (window.bibliotecaDados) {
-            window.bibliotecaDados.livros = window.bibliotecaDados.livros.filter(livro => (livro.id || livro.ID) !== parseInt(id, 10));
+            // CORREÇÃO: Filtra comparando os IDs como String para evitar incompatibilidade
+            window.bibliotecaDados.livros = window.bibliotecaDados.livros.filter(livro => 
+                String(livro.id || livro.ID || "").trim() !== String(id).trim()
+            );
             if (typeof window.atualizarTudo === "function") window.atualizarTudo();
         }
     }
 };
 
+// ===================================================
 // 6. MONITORAMENTO E ESCUTAS DE CLIQUES DA TELA
+// ===================================================
 document.addEventListener("DOMContentLoaded", function() {
     const campoPesquisa = document.getElementById('campoPesquisaLivro');
     if (campoPesquisa) {
@@ -157,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const formLivro = document.getElementById('livroForm');
     if (formLivro) {
         formLivro.addEventListener('submit', function(e) {
-            // Impede a página de dar recarregamento (F5) e sumir com os dados
             e.preventDefault(); 
             
             const id = document.getElementById('livroId').value;
@@ -170,17 +183,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (window.bibliotecaDados) {
                 if (id) {
-                    // Modo Edição
-                    const index = window.bibliotecaDados.livros.findIndex(livro => (livro.id || livro.ID) === parseInt(id, 10));
+                    // Modo Edição - CORREÇÃO: Localiza o índice tratando o ID como String
+                    const index = window.bibliotecaDados.livros.findIndex(livro => 
+                        String(livro.id || livro.ID || "").trim() === String(id).trim()
+                    );
                     if (index !== -1) {
-                        window.bibliotecaDados.livros[index] = { ...dados, id: parseInt(id, 10) };
+                        // Mantém a chave original do ID (seja id ou ID) para não quebrar a estrutura vinda do Excel
+                        const chaveId = window.bibliotecaDados.livros[index].ID ? 'ID' : 'id';
+                        window.bibliotecaDados.livros[index] = { ...dados, [chaveId]: id };
                     }
                 } else {
                     // Modo Cadastro
                     const proximoId = window.bibliotecaDados.livros.length > 0 
                         ? Math.max(...window.bibliotecaDados.livros.map(l => parseInt(l.id || l.ID || 0, 10))) + 1 
                         : 1;
-                    window.bibliotecaDados.livros.push({ ...dados, id: proximoId });
+                    window.bibliotecaDados.livros.push({ ...dados, id: String(proximoId) });
                 }
                 
                 window.resetarFormLivro(true); 
@@ -191,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     window.listarLivros();
                 }
                 
-                alert("Livro gravado com sucesso na memória! Lembre-se de clicar no botão VERDE do topo para baixar o arquivo definitivo.");
+                alert("Alteração gravada na memória! Lembre-se de clicar no botão VERDE do topo para baixar o arquivo definitivo.");
             }
         });
     }
