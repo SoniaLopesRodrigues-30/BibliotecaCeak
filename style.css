@@ -1,0 +1,323 @@
+/* =================================================== */
+/* 1. CONFIGURAÇÕES GERAIS E RESETS                    */
+/* =================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f3f4f6; /* Cinza claro de fundo profissional */
+    color: #1f2937;
+    padding: 2rem 1rem;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Centralização e Proporção do Logotipo do CEAK */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.logo-pequeno {
+    width: 100px;
+    height: auto;
+    object-fit: contain;
+    border-radius: 6px;
+    opacity: 0.9;
+}
+
+h1 {
+    text-align: center;
+    color: #111827;
+    margin-bottom: 2rem;
+    font-size: 2.25rem;
+    font-weight: 700;
+}
+
+/* =================================================== */
+/* 2. NAVEGAÇÃO POR ABAS (TABS)                        */
+/* =================================================== */
+.tabs {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0px;
+    flex-wrap: wrap; /* Não quebra o layout em celulares */
+}
+
+.tab-btn {
+    background-color: #e5e7eb;
+    color: #4b5563;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.15s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-btn:hover {
+    background-color: #d1d5db;
+    color: #111827;
+}
+
+.tab-btn.active {
+    background-color: #ffffff;
+    color: #2563eb; /* Azul Destaque */
+    border-color: #e5e7eb;
+    border-bottom: 2px solid #ffffff; /* Cobre a borda cinza inferior */
+    margin-bottom: -2px; /* Encaixe perfeito na linha */
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.02);
+}
+
+/* Controle de visibilidade das Abas */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block !important;
+}
+
+/* =================================================== */
+/* 3. CARDS, GRIDS E ESTRUTURA DOS FORMULÁRIOS        */
+/* =================================================== */
+.card {
+    background-color: #ffffff;
+    padding: 1.75rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    margin-bottom: 1.5rem;
+    border: 1px solid #f1f5f9;
+}
+
+h2 {
+    color: #1f2937;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #2563eb; /* Detalhe azul elegante ao lado do título */
+    padding-left: 0.6rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+input, select {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: #f8fafc;
+    font-size: 0.95rem;
+    color: #334155;
+    outline: none;
+    height: 42px;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+input:focus, select:focus {
+    border-color: #2563eb;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); /* Efeito suave azul ao focar */
+}
+
+/* Seção de Pesquisa nos Topos das Tabelas */
+.search-section {
+    margin-bottom: 1.5rem;
+}
+
+.search-section input {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+}
+
+/* =================================================== */
+/* 4. BOTÕES E COMPORTAMENTOS                          */
+/* =================================================== */
+.btn-container {
+    grid-column: 1 / -1;
+    text-align: right;
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.btn-salvar, .btn-cancelar {
+    padding: 0.65rem 1.75rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    height: 42px;
+}
+
+.btn-salvar {
+    background-color: #2563eb;
+    color: white;
+}
+
+.btn-salvar:hover {
+    background-color: #1d4ed8;
+}
+
+.btn-cancelar {
+    background-color: #64748b;
+    color: white;
+}
+
+.btn-cancelar:hover {
+    background-color: #475569;
+}
+
+/* =================================================== */
+/* 5. TABELAS DE EXIBIÇÃO DE DADOS                     */
+/* =================================================== */
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    background-color: #ffffff;
+}
+
+th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+    color: #334155;
+    vertical-align: middle;
+}
+
+tr:hover td {
+    background-color: #f8fafc; /* Efeito hover discreto na linha da tabela */
+}
+
+/* Estilizações de Células Específicas */
+.col-codigo {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.txt-titulo {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* Ajustes finos para botões pequenos de AÇÃO DENTRO da tabela */
+td .btn-salvar, td .btn-cancelar {
+    padding: 0px 10px !important;
+    font-size: 0.85rem !important;
+    height: 30px !important;
+    min-width: 32px;
+}
+
+.text-right {
+    text-align: right;
+}
+
+/* Tag de prazos ou dados vencidos */
+.data-vencida {
+    color: #dc2626;
+    font-weight: 700;
+    background-color: #fef2f2;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #fee2e2;
+}
+
+/* =================================================== */
+/* 6. REGRAS EXCLUSIVAS PARA IMPRESSÃO (PDF)          */
+/* =================================================== */
+@media print {
+    body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+    }
+    
+    /* Oculta tudo que não for o bloco impresso */
+    body * {
+        visibility: hidden;
+    }
+    
+    #areaImpressaoRelatorio, #areaImpressaoRelatorio * {
+        visibility: visible;
+    }
+    
+    #areaImpressaoRelatorio {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+    
+    th {
+        background-color: #f1f5f9 !important;
+        border-bottom: 2px solid #94a3b8 !important;
+        color: #000 !important;
+    }
+    
+    td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        color: #000 !important;
+        padding: 0.5rem !important;
+    }
+}

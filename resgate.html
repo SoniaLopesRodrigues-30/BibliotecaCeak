@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>🚨 Recuperador Geral de Emergência - CEAK</title>
+    <style>
+        body { font-family: sans-serif; background: #f3f4f6; text-align: center; padding: 3rem; }
+        .box { background: white; max-width: 600px; margin: 0 auto; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        button { background: #7c3aed; color: white; border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 1.5rem; }
+        button:hover { background: #6d28d9; }
+        .resultado { margin-top: 1.5rem; font-weight: bold; font-size: 1.1rem; color: #059669; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h2>🔄 Recuperador de Emergência - Biblioteca CEAK</h2>
+        <p>Este script vai varrer todas as versões possíveis do banco oculto do seu navegador para sugar os seus livros e leitores de volta.</p>
+        
+        <button type="button" onclick="sugarDadosOcultos()">FORÇAR EXTRAÇÃO DOS LIVROS</button>
+        
+        <div id="msgSucesso" class="resultado"></div>
+    </div>
+
+    <script>
+        function sugarDadosOcultos() {
+            // Tenta abrir o banco passando por todas as versões anteriores para garantir acesso total
+            const nomesBancos = ["BibliotecaCeakAbasDB", "BibliotecaCeakDB"];
+            
+            let bancoAberto = false;
+
+            nomesBancos.forEach(nomeBanco => {
+                // Tenta abrir em lote passando versões de 1 a 10
+                for(let v = 1; v <= 10; v++) {
+                    const req = indexedDB.open(nomeBanco, v);
+                    
+                    req.onsuccess = function(e) {
+                        const db = e.target.result;
+                        
+                        // Procura se esse banco possui a tabela de livros guardada
+                        if (db.objectStoreNames.contains("livros") && !bancoAberto) {
+                            bancoAberto = true;
+                            console.log("Banco localizado com sucesso:", nomeBanco, "Versão:", v);
+                            
+                            const tx = db.transaction(["livros", "usuarios", "emprestimos"], "readonly");
+                            
+                            const extrair = (storeName) => {
+                                return new Promise((res) => {
+                                    const store = tx.objectStore(storeName);
+                                    store.getAll().onsuccess = ev => res(ev.target.result || []);
+                                });
+                            };
+
+                            Promise.all([extrair("livros"), extrair("usuarios"), extrair("emprestimos")]).then(([livros, usuarios, emprestimos]) => {
+                                if (livros.length === 0 && usuarios.length === 0) {
+                                    return; // Tenta o próximo loop se este estiver limpo
+                                }
+
+                                // Formata os dados para o layout estável CSV do novo sistema
+                                var converterParaCSV = function(dados, colunas) {
+                                    var linhas = [colunas.join(";")];
+                                    dados.forEach(function(item) {
+                                        var linha = colunas.map(function(col) {
+                                            var valor = item[col] !== undefined && item[col] !== null ? item[col] : "";
+                                            return String(valor).replace(/[\n\r;]/g, " ");
+                                        });
+                                        linhas.push(linha.join(";"));
+                                    });
+                                    return linhas.join("\n");
+                                };
+
+                                var csvLivros = converterParaCSV(livros, ["id", "codigo", "titulo", "autor", "genero"]);
+                                var csvUsuarios = converterParaCSV(usuarios, ["id", "nome", "telefone", "email"]);
+                                var csvEmprestimos = converterParaCSV(emprestimos, ["id", "livroId", "usuarioId", "dataRetirada", "dataDevolucao"]);
+
+                                var conteudoFinal = "=== LIVROS ===\n" + csvLivros + "\n\n=== USUARIOS ===\n" + csvUsuarios + "\n\n=== EMPRESTIMOS ===\n" + csvEmprestimos;
+
+                                // Força o download imediato de um arquivo novinho limpo
+                                var blob = new Blob(["\ufeff" + conteudoFinal], { type: "text/csv;charset=utf-8;" });
+                                var link = document.createElement("a");
+                                link.href = URL.createObjectURL(blob);
+                                link.download = "banco_ceak_RECUPERADO.csv";
+                                link.click();
+
+                                const msg = document.getElementById("msgSucesso");
+                                msg.innerText = `🎉 SUCESSO ABSOLUTO!\nRecuperamos ${livros.length} livros e ${usuarios.length} usuários antigos!\nO arquivo 'banco_ceak_RECUPERADO.csv' foi baixado na sua pasta de Downloads.`;
+                                msg.style.display = "block";
+                            });
+                        }
+                    };
+                }
+            });
+            
+            setTimeout(() => {
+                if(!bancoAberto) {
+                    alert("Varredura concluída. Se o arquivo não baixou, mude de navegador para o qual você usava antes para testar o sistema.");
+                }
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

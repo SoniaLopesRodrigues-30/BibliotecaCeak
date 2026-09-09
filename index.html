@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Biblioteca - CEAK</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:,">
+    <script src="https://googleapis.com"></script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Logotipo do CEAK -->
+        <div class="logo-container">
+            <img src="./logo.jpeg" alt="Logo CEAK" class="logo-pequeno">
+        </div>
+        <h1>📚 Sistema de Biblioteca - CEAK</h1>
+
+        
+        <!-- COLOQUE ESTA BARRA DEFINITIVA NO LUGAR DA ANTIGA -->
+        <div style="background: #1e293b; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: center; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+            
+            <!-- 1) CAMPO PARA CARREGAR O ARQUIVO -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label for="carregarExcelInput" style="background-color: #2563eb; color: white; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; margin: 0; display: inline-block;">
+                    📥 1º) Abrir Arquivo da Biblioteca
+                </label>
+                <input type="file" id="carregarExcelInput" accept=".csv" style="display: none;">
+                <span id="statusArquivo" style="font-size: 0.9rem; font-weight: 600; color: #94a3b8;">Nenhum arquivo ativo</span>
+            </div>
+
+            <div style="color: #475569; font-weight: bold;">|</div>
+
+            <!-- 2) BOTÃO VERDE PARA SALVAR AS ALTERAÇÕES -->
+            <button type="button" id="btnSalvarExcelTopo" style="background-color: #059669; color: white; padding: 0.6rem 1.25rem; border: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+                💾 2º) Salvar Alterações (Baixar)
+            </button>
+        </div>
+
+
+        
+
+        <!-- Menu Superior de Abas -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="mudarAba('abaAcervo')">📖 Gerenciar Acervo</button>
+            <button class="tab-btn" onclick="mudarAba('abaUsuarios')">👥 Cadastrar Usuários</button>
+            <button class="tab-btn" onclick="mudarAba('abaEmprestimos')">🤝 Controle de Retiradas</button>
+            <button class="tab-btn" onclick="mudarAba('abaRelatorios')">📊 Relatórios</button>
+            <button class="tab-btn" onclick="mudarAba('abaBackup')">⚙️ Backup do Sistema</button>
+        </div>
+
+        <!-- ABA 1: GERENCIAR ACERVO -->
+        <div id="abaAcervo" class="tab-content active">
+            <div class="card">
+                <h2 id="formTituloLivro">Cadastrar Novo Livro</h2>
+                <form id="livroForm" class="form-grid">
+                    <input type="hidden" id="livroId">
+                    <div class="form-group">
+                        <label for="codigo">Código</label>
+                        <input type="text" id="codigo" required placeholder="Ex: 001-A">
+                    </div>
+                    <div class="form-group">
+                        <label for="titulo">Título</label>
+                        <input type="text" id="titulo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="autor">Autor</label>
+                        <input type="text" id="autor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="genero">Gênero</label>
+                        <select id="genero" required>
+                            <option value="">-- Selecione o Gênero --</option>
+                            <option value="Doutrinário">Doutrinário</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Biografias">Biografias</option>
+                            <option value="Poesia">Poesia</option>
+                            <option value="Crônicas e Contos">Crônicas e Contos</option>
+                            <option value="Auto Ajuda">Auto Ajuda</option>
+                            <option value="Obras básicas">Obras básicas</option>
+                        </select>
+                    </div>
+                    <div class="btn-container">
+                        <button type="button" id="btnCancelarLivro" class="btn-cancelar" style="display: none;">Cancelar</button>
+                        <button type="submit" id="btnSalvarLivro" class="btn-salvar">Salvar Livro</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Livros Cadastrados no Acervo (<span id="totalLivros">0</span>)</h2>
+                <div class="search-section">
+                    <input type="text" id="campoPesquisaLivro" placeholder="🔍 Pesquisar no acervo por código, título, autor...">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Título</th>
+                                <th>Autor</th>
+                                <th>Gênero</th>
+                                <th class="text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaLivros"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 2: CADASTRO DE USUÁRIOS -->
+        <div id="abaUsuarios" class="tab-content">
+            <div class="card">
+                <h2 id="formTituloUsuario">Cadastrar Novo Usuário</h2>
+                <form id="usuarioForm" class="form-grid">
+                    <input type="hidden" id="usuarioId">
+                    <div class="form-group">
+                        <label for="nomeUsuario">Nome Completo</label>
+                        <input type="text" id="nomeUsuario" required placeholder="Nome do leitor">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefoneUsuario">Telefone / WhatsApp</label>
+                        <input type="text" id="telefoneUsuario" placeholder="(54) 99999-9999">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailUsuario">E-mail</label>
+                        <input type="email" id="emailUsuario" placeholder="exemplo@email.com">
+                    </div>
+                    <div class="btn-container">
+                        <button type="button" id="btnCancelarUsuario" class="btn-cancelar" style="display: none;">Cancelar</button>
+                        <button type="submit" id="btnSalvarUsuario" class="btn-salvar" style="background-color: #2563eb;">Salvar Usuário</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Usuários Cadastrados (<span id="totalUsuarios">0</span>)</h2>
+                <div class="search-section">
+                    <input type="text" id="campoPesquisaUsuario" placeholder="🔍 Pesquisar usuários por nome, telefone...">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>E-mail</th>
+                                <th class="text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaUsuarios"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 3: CONTROLE DE RETIRADAS -->
+        <div id="abaEmprestimos" class="tab-content">
+            <div class="card">
+                <h2>Registrar Nova Retirada</h2>
+                <form id="emprestimoForm" class="form-grid">
+                    <div class="form-group">
+                        <label for="selectLivro">Selecione o Livro</label>
+                        <select id="selectLivro" required>
+                            <option value="">-- Escolha um livro disponível --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="selectUsuario">Selecione o Leitor (Usuário)</label>
+                        <select id="selectUsuario" required>
+                            <option value="">-- Escolha um usuário cadastrado --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataRetirada">Data de Retirada</label>
+                        <input type="date" id="dataRetirada" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataDevolucao">Data Prevista de Devolução</label>
+                        <input type="date" id="dataDevolucao" required>
+                    </div>
+                    <div class="btn-container">
+                        <button type="submit" class="btn-salvar" style="background-color: #059669;">Confirmar Empréstimo</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Livros Emprestados no Momento (<span id="totalEmprestados">0</span>)</h2>
+                <div class="search-section">
+                    <input type="text" id="campoPesquisaEmprestimo" placeholder="🔍 Pesquisar por leitor, livro ou código...">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Livro</th>
+                                <th>Emprestado para</th>
+                                <th>Data Retirada</th>
+                                <th>Prazo Devolução</th>
+                                <th class="text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaEmprestimos"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+               <!-- =================================================== -->
+        <!-- ABA 4: RELATÓRIOS PERSONALIZADOS                   -->
+        <!-- =================================================== -->
+        <div id="abaRelatorios" class="tab-content">
+            <div class="card">
+                <h2>📊 Filtros do Relatório</h2>
+                <div class="form-grid" style="margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label for="repCodigoInicio">Código Inicial</label>
+                        <input type="text" id="repCodigoInicio" placeholder="Ex: 001">
+                    </div>
+                    <div class="form-group">
+                        <label for="repCodigoFim">Código Final</label>
+                        <input type="text" id="repCodigoFim" placeholder="Ex: 100">
+                    </div>
+                    <div class="form-group">
+                        <label for="repTitulo">Nome / Título do Livro</label>
+                        <input type="text" id="repTitulo" placeholder="Título do livro...">
+                    </div>
+                    <div class="form-group">
+                        <label for="repAutor">Autor</label>
+                        <input type="text" id="repAutor" placeholder="Nome do autor...">
+                    </div>
+                    <div class="form-group">
+                        <label for="repGenero">Gênero</label>
+                        <select id="repGenero">
+                            <option value="">-- Todos os Gêneros --</option>
+                            <option value="Doutrinário">Doutrinário</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Biografias">Biografias</option>
+                            <option value="Poesia">Poesia</option>
+                            <option value="Crônicas e Contos">Crônicas e Contos</option>
+                            <option value="Auto Ajuda">Auto Ajuda</option>
+                            <option value="Obras básicas">Obras básicas</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-container" style="justify-content: flex-start; gap: 0.5rem;">
+                    <button id="btnFiltrarRelatorio" class="btn-salvar" style="background-color: #2563eb;">🔍 Gerar Relatório</button>
+                    <button id="btnLimparRelatorio" class="btn-cancelar" style="display: inline-block;">🧹 Limpar Filtros</button>
+                    <button id="btnImprimirRelatorio" class="btn-salvar" style="background-color: #059669;">🖨️ Imprimir / Salvar PDF</button>
+                </div>
+            </div>
+
+            <div class="card" id="areaImpressaoRelatorio">
+                <h3 id="tituloFiltrosAplicados" style="margin-bottom: 0.5rem; color: #374151;"></h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr style="text-align: left;">
+                                <th>Código</th>
+                                <th>Título</th>
+                                <th>Autor</th>
+                                <th>Gênero</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaResultadosRelatorio">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 2rem; color: #9ca3af;">Use os filtros acima e clique em "Gerar Relatório".</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 1rem; font-weight: bold; text-align: right; font-size: 1.05rem;">
+                    Total de Livros no Relatório: <span id="totalResultadosRelatorio">0</span>
+                </div>
+            </div>
+        </div> <!-- FIM DA ABA 4 -->
+
+
+                <!-- =================================================== -->
+<!-- ABA 5: CENTRAL DE BACKUP (COM ESTILIZAÇÃO FORÇADA) -->
+        <!-- =================================================== -->
+        <div id="abaBackup" class="tab-content" style="display: none; padding: 1rem 0;">
+            
+            <!-- Card Principal -->
+            <div style="background: #ffffff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+                <h2 style="margin-top: 0; margin-bottom: 0.5rem; color: #1f2937; font-size: 1.5rem; font-weight: 600;">⚙️ Central de Backup e Restauração</h2>
+                <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;">
+                    Gerencie as cópias de segurança dos dados da biblioteca de forma centralizada.
+                </p>
+                
+                <!-- Grid de Duas Colunas -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                    
+                                        <!-- Seção Acervo -->
+                    <div style="border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 8px; background-color: #f9fafb;">
+                        <h3 style="margin-top: 0; margin-bottom: 1rem; color: #1f2937; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; font-weight: 600;">📖 Dados do Acervo</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button type="button" id="btnExportar" style="width: 100%; text-align: center; margin: 0; padding: 10px 15px; background-color: #4b5563; color: white; border: none; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 0.95rem;">Fluxo 📤 Exportar Backup Livros</button>
+                            
+                            <label for="importarArquivo" style="width: 100%; text-align: center; margin: 0; display: block; cursor: pointer; background-color: #374151; color: white; padding: 10px 15px; border-radius: 4px; font-weight: 500; font-size: 0.95rem; box-sizing: border-box;">Fluxo 📥 Importar Backup Livros</label>
+                            <input type="file" id="importarArquivo" accept=".json" style="display: none;">
+                            
+                            <!-- NOVO BOTÃO ADICIONADO ABAIXO -->
+                            <button type="button" id="btnImprimirFichas" style="width: 100%; text-align: center; margin-top: 0.5rem; padding: 10px 15px; background-color: #059669; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.95rem;">🖨️ Imprimir Fichas dos Livros</button>
+                        </div>
+                    </div>
+
+                    
+                    <!-- Seção Usuários -->
+                    <div style="border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 8px; background-color: #f9fafb;">
+                        <h3 style="margin-top: 0; margin-bottom: 1rem; color: #2563eb; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; font-weight: 600;">👥 Dados dos Usuários</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button type="button" id="btnExportarUsuarios" style="width: 100%; text-align: center; margin: 0; background-color: #2563eb; padding: 10px 15px; cursor: pointer; color: white; border: none; border-radius: 4px; font-weight: 500; font-size: 0.95rem;">Fluxo 📤 Exportar Backup Leitores</button>
+                            
+                            <label for="importarArquivoUsuarios" style="width: 100%; text-align: center; margin: 0; display: block; background-color: #3b82f6; cursor: pointer; color: white; padding: 10px 15px; border-radius: 4px; font-weight: 500; font-size: 0.95rem; box-sizing: border-box;">Fluxo 📥 Importar Backup Leitores</label>
+                            <input type="file" id="importarArquivoUsuarios" accept=".json" style="display: none;">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+                <!-- ABA 5: CENTRAL DE ARQUIVO EXCEL (MIGRAÇÃO DE DADOS) -->
+        <!-- =================================================== -->
+        <div id="abaBackup" class="tab-content" style="display: none; padding: 1rem 0;">
+            
+            <!-- Card Principal -->
+            <div class="card">
+                <h2>⚙️ Gerenciador de Dados via Excel</h2>
+                <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;">
+                    Carregue o arquivo de banco de dados para iniciar os trabalhos ou salve as alterações feitas hoje.
+                </p>
+                
+                <!-- Grid de Ações Globais do Excel -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                    
+                    <!-- Carregar Arquivo -->
+                    <div style="border: 1px solid #cbd5e1; padding: 1.5rem; border-radius: 8px; background-color: #f8fafc;">
+                        <h3 style="margin-top: 0; margin-bottom: 1rem; color: #1e293b; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; font-weight: 600;">📥 Entrada de Dados</h3>
+                        <p style="font-size: 0.85rem; color: #475569; margin-bottom: 1rem;">Abra o arquivo Excel da biblioteca para trazer as informações atuais para o sistema.</p>
+                        
+                        <label for="carregarExcelInput" style="width: 100%; text-align: center; margin: 0; display: block; cursor: pointer; background-color: #2563eb; color: white; padding: 10px 15px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; box-sizing: border-box; transition: background 0.2s;">
+                            Selecionar Arquivo Excel
+                        </label>
+                        <input type="file" id="carregarExcelInput" accept=".xlsx, .xls" style="display: none;">
+                        <div id="statusArquivo" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; color: #ef4444; text-align: center;">Nenhum arquivo carregado ainda</div>
+                    </div>
+                    
+                    <!-- Exportar / Salvar Planilha -->
+                    <div style="border: 1px solid #cbd5e1; padding: 1.5rem; border-radius: 8px; background-color: #f8fafc;">
+                        <h3 style="margin-top: 0; margin-bottom: 1rem; color: #059669; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; font-weight: 600;">💾 Saída de Dados</h3>
+                        <p style="font-size: 0.85rem; color: #475569; margin-bottom: 1rem;">Baixe uma planilha atualizada contendo todos os novos cadastros, alterações e fichas criadas.</p>
+                        
+                        <button type="button" id="btnSalvarExcel" style="width: 100%; text-align: center; margin: 0; padding: 10px 15px; background-color: #059669; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; transition: background 0.2s;">
+                            Salvar Alterações (Baixar Excel)                       
+                    </div>
+
+                </div>
+
+                <!-- Nova seção para impressão das fichas compactas -->
+                <div style="margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; text-align: center;">
+                    <button type="button" id="btnImprimirFichas" class="btn-salvar" style="background-color: #4b5563; font-weight: 600;">
+                        🖨️ Imprimir Fichas de Retirada dos Livros (Sete Linhas)
+                    </button>
+                </div>
+
+                 </button>
+                 
+            </div>
+            
+        </div> <!-- FIM DA ABA 5 -->
+
+    </div> <!-- FECHAMENTO CORRETO DA DIV .container PRINCIPAL -->
+
+    <!-- =================================================== -->
+    <!-- LOGICA FINAL DE NAVEGAÇÃO CORRIGIDA                 -->
+    <!-- =================================================== -->
+    <script>
+        window.mudarAba = function(abaId, botaoClicado) {
+            document.querySelectorAll('.tab-content').forEach(aba => {
+                aba.classList.remove('active');
+                aba.style.setProperty('display', 'none', 'important'); 
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const abaAlvo = document.getElementById(abaId);
+            if (abaAlvo) {
+                abaAlvo.classList.add('active');
+                abaAlvo.style.setProperty('display', 'block', 'important'); 
+            }
+            
+            if (botaoClicado) {
+                botaoClicado.classList.add('active');
+            } else if (window.event && window.event.currentTarget) {
+                window.event.currentTarget.classList.add('active');
+            } else {
+                const btnOriginal = document.querySelector(`[onclick*="${abaId}"]`);
+                if (btnOriginal) btnOriginal.classList.add('active');
+            }
+        };
+    </script>
+
+       <!-- =================================================== -->
+    <!-- SCRIPTS EXCLUSIVAMENTE LOCAIS (SEM INTERNET)       -->
+    <!-- =================================================== -->
+    <script src="./js/xlsx.full.min.js"></script>
+    <script src="./js/acervo.js"></script>
+    <script src="./js/usuarios.js"></script>
+    <script src="./js/emprestimos.js"></script>
+    <script src="./js/relatorios.js"></script>
+    <script src="./js/db-config.js"></script>    
+    <script src="./js/app.js"></script>
+</body>
+</html>
